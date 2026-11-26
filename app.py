@@ -1,6 +1,6 @@
-from dataset_harmonizer import main
+"""Entry point: `python app.py [config.yaml]` (default: config.yaml)."""
 
-CONFIG_FILE_PATH = "config.yaml"
+from dataset_harmonizer.main import cli
 
 if __name__ == "__main__":
-    main(CONFIG_FILE_PATH)
+    cli()

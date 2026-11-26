@@ -1,7 +1,7 @@
 # Dataset Harmonizer
 
-A Python tool for harmonizing oceanographic NetCDF datasets.  
-It allows interpolation of variables to a common grid, combination of multiple datasets, renaming of variables and coordinates, adding attributes, and subsetting data for a region of interest. This is particularly useful for NEMO ocean model outputs and preparing data for tools like OpenDrift.
+A Python tool for harmonizing oceanographic NetCDF datasets.
+It interpolates variables to a common grid, combines multiple datasets, renames variables and coordinates, adds attributes and subsets data for a region of interest. It is particularly useful for NEMO ocean model outputs and for preparing data for tools like OpenDrift (see the companion project [Oil-Spill](https://github.com/novaisc/Oil-Spill)).
 
 ---
 
@@ -18,51 +18,52 @@ It allows interpolation of variables to a common grid, combination of multiple d
 
 ## Installation
 
-### Using pip (recommended for virtual environments)
+Python >= 3.13.
 
 ```bash
 python -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt
+pip install -e ".[dev]"      # or: make install   (pip install -r requirements.txt also works)
 ```
-
-## Configuration
-
-The program is entirely driven by the configuration file `parameters.yaml`.
-You do **not** need to modify the code to run it on your own datasets. All processing steps—interpolation, combination, renaming, adding attributes, and subsetting—are controlled from this file.
-
-Key sections in `parameters.yaml`:
-
-* `input_data`: Paths to input NetCDF files (supports glob patterns).
-
-* `transformations`:
-
-  * `interpolation`: Define which variables to interpolate to the target grid.
-  * `combination`: Define other datasets and variables to merge into the combined dataset.
-  * `renaming`: Standardize variable and coordinate names.
-  * `attributes_to_add`: File-level and variable-level attributes.
-  * `coords_to_add`: Coordinates to assign to variables.
-  * `slicing`: Define the region of interest to subset.
-  * `keep`: List of variables and coordinates to keep in the final dataset.
-
-* `xarray`: Options for reading NetCDF files with `xarray`.
-
-* `output`: Output directory and file name for the harmonized dataset.
 
 ## Usage
 
 1. Prepare your input NetCDF datasets.
-
-2. Open `parameters.yaml` and edit paths, variables, and transformation settings as needed.  
-   All transformations (interpolation, combination, renaming, etc.) are controlled via this configuration file.
-
-3. Run the program:
+2. Edit `config.yaml` (paths, variables and transformations). The code does not need to change to run on other datasets.
+3. Run from the repository root:
 
 ```bash
-make
+python app.py                 # uses config.yaml
+python app.py my_config.yaml  # another configuration file
+make run                      # same as `python app.py`
+make run-bg                   # in the background, log in output.txt
 ```
-To run the program and explicitly generate the output file, use:
+
+4. The harmonized dataset is written to `output.directory` / `output.file_name`.
+
+## Configuration
+
+Transformations are applied in this order: **interpolation → combination → renaming → attributes → coordinates → cleaning (`keep`) → slicing**. Each step receives the result of the previous one, so e.g. names in `attributes_to_add` and `keep` are the names *after* renaming.
+
+| Section | Purpose |
+| --- | --- |
+| `input_data.data_paths` | Dataset name -> file path or glob pattern (required). |
+| `transformations.interpolation` | `target_grid` (a key of `data_paths`), `target_reference_variable` and `variables` (`source_var` and `dims_mapping` per grid to interpolate). |
+| `transformations.combination` | Other datasets/variables merged into the target dataset, optionally with `dims_mapping`. |
+| `transformations.renaming` | Variable/coordinate/dimension renames. Names that do not exist are skipped with a warning. |
+| `transformations.attributes_to_add` | `file` and `variables` attributes. |
+| `transformations.coords_to_add` | Coordinates assigned to each variable. |
+| `transformations.slicing` | `region_of_interest`: `{dim: [start, end]}` (index based). |
+| `transformations.keep` | `variables` and `coords` to keep. If omitted, everything is kept. |
+| `xarray` | `engine` (default `netcdf4`) and `reader.combine` / `reader.data_vars` for `open_mfdataset`. |
+| `output` | `directory` and `file_name` of the harmonized file. |
+
+Everything except `input_data` and `transformations.interpolation` is optional. Unknown keys and malformed sections are rejected with an error naming the file and the section.
+
+## Development
+
 ```bash
-make output
+make test        # or: python -m pytest
 ```
-4. The harmonized dataset will be saved to the folder specified in output.directory in the configuration file.
+
+The tests build a small synthetic NEMO-like dataset, so they need no real data.
