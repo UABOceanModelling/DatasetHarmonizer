@@ -1,14 +1,20 @@
-import os
+from pathlib import Path
+from typing import Union
 
-def create_directory(path: str):
-    if not os.path.exists(path):
-        os.makedirs(path)
+PathLike = Union[str, Path]
 
-    return os.path.abspath(path)
 
-def check_existing_file(path: str) -> bool:
-    return os.path.exists(path) and os.path.isfile(path)
+def create_directory(path: PathLike) -> str:
+    """Create `path` (and parents) if needed and return its absolute path."""
+    path = Path(path)
+    path.mkdir(parents=True, exist_ok=True)
+    return str(path.resolve())
 
-def create_path(directory: str, file_name: str) -> str:
-    dir_path = create_directory(directory)
-    return os.path.join(dir_path, file_name)
+
+def check_existing_file(path: PathLike) -> bool:
+    return Path(path).is_file()
+
+
+def create_path(directory: PathLike, file_name: str) -> str:
+    """Create `directory` if needed and return the full path of `file_name` inside it."""
+    return str(Path(create_directory(directory)) / file_name)

@@ -1,6 +1,9 @@
-from dataset_harmonizer.utils import create_directory
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 def save_dataset(ds, output_path):
-    print("Saving combined dataset...")
+    logger.info("Saving combined dataset to %s", output_path)
     ds.to_netcdf(output_path)
-    print("Combined dataset saved!")
+    logger.info("Combined dataset saved")

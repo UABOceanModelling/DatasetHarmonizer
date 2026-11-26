@@ -1,5 +1,14 @@
 __pycache__/
-dataset_harmonizer/output/*
+*.egg-info/
 .venv/
 venv/
+.pytest_cache/
+build/
+dist/
+
+# results and logs
+dataset_harmonizer/output/*
+output/*
+output.txt
 *.nc
+*.log

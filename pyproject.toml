@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dataset_harmonizer"
+version = "0.1.0"
+description = "Harmonize oceanographic NetCDF datasets (NEMO) onto a common grid."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "numpy>=2.3.0",
+    "xarray>=2025.4.0",
+    "pandas>=2.3.0",
+    "pyyaml>=6.0",
+    "netcdf4>=1.6.3",
+    "dask>=2024.1",  # required by xarray.open_mfdataset
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[project.scripts]
+dataset-harmonizer = "dataset_harmonizer.main:cli"
+
+[tool.setuptools.packages.find]
+include = ["dataset_harmonizer*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
